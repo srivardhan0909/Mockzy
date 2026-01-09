@@ -61,7 +61,7 @@ git push -u origin main
    | Key | Value |
    |-----|-------|
    | `DATABASE_URL` | Your Neon connection string |
-   | `JWT_SECRET` | `your-super-secret-key-here` (make it random!) |
+   | `JWT_SECRET` | `superkey@2004jakkani` (make it random!) |
    | `FRONTEND_URL` | `https://mockzy.vercel.app` (update after Step 4) |
    | `NODE_ENV` | `production` |
 
