@@ -1,4 +1,5 @@
 import Interviewer from '../models/Interviewer.js'
+import { getCompletedInterviewCount } from '../models/Slot.js'
 
 const getProfile = async (req, res) => {
   try {
@@ -84,4 +85,19 @@ const createOrUpdateProfile = async (req, res) => {
   }
 }
 
-export { getProfile, createOrUpdateProfile }
+const getCompletedInterviews = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' })
+    }
+
+    const count = await getCompletedInterviewCount(req.user.id)
+
+    res.json({ completed_count: count })
+  } catch (error) {
+    console.error('Error fetching completed interviews count:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+export { getProfile, createOrUpdateProfile, getCompletedInterviews }

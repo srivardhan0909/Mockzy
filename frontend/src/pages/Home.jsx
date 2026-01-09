@@ -1,18 +1,32 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Button, Card, Timeline } from 'flowbite-react'
+import { Typography, Space, Row, Col, Divider, Statistic } from 'antd'
 import {
-  FaArrowRight,
-  FaCheckCircle,
-  FaClock,
-  FaChartLine,
-} from 'react-icons/fa'
+  ArrowRightOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  RiseOutlined,
+  TeamOutlined,
+  CalendarOutlined,
+  LaptopOutlined,
+  UserOutlined,
+} from '@ant-design/icons'
+import { useAuth } from '../context/AuthContext'
+
+const { Title, Paragraph, Text } = Typography
 
 function Home() {
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const handleGetStarted = () => {
-    navigate('/register')
+    if (user) {
+      navigate('/all-slots')
+    } else {
+      navigate('/register')
+    }
   }
 
   // Animation variants
@@ -37,329 +51,350 @@ function Home() {
     },
   }
 
-  const buttonVariants = {
-    hover: {
-      scale: 1.05,
-      transition: {
-        duration: 0.2,
-      },
-    },
-    tap: {
-      scale: 0.95,
-    },
-  }
-
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-b from-blue-50 to-white"
+      className="bg-gradient-to-b from-blue-50 to-white pb-16 -mx-4 md:-mx-6 overflow-hidden"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      {/* Navigation Bar */}
-      <motion.nav
-        className="bg-white shadow-sm fixed w-full top-0 z-50"
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <motion.div
-              className="flex items-center"
-              whileHover={{ scale: 1.05 }}
-            >
-              <span className="text-2xl font-bold text-blue-600">Mockzy</span>
-            </motion.div>
-            <div className="flex items-center space-x-4">
-              <motion.button
-                onClick={() => navigate('/login')}
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Login
-              </motion.button>
-              <motion.button
-                onClick={handleGetStarted}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-              >
-                Get Started
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      </motion.nav>
-
       {/* Hero Section */}
       <motion.div
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20"
         variants={itemVariants}
       >
-        <div className="text-center">
-          <motion.h1
-            className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6"
+        <div className="text-center relative">
+          {/* Background decoration */}
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
+          <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-indigo-100 rounded-full opacity-20 blur-3xl"></div>
+
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
+            className="relative"
           >
-            Master Your Interview Skills with
-            <span className="text-blue-600"> Mockzy</span>
-          </motion.h1>
-          <motion.p
-            className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto"
+            <Title
+              level={1}
+              className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 tracking-tight"
+            >
+              Master Your Interview Skills with
+              <span className="text-primary-600 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                {' '}
+                Mockzy
+              </span>
+            </Title>
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative"
           >
-            Practice with real interviewers, get instant feedback, and boost
-            your confidence. Our AI-powered platform matches you with the
-            perfect interviewer based on your expertise level.
-          </motion.p>
+            <Paragraph className="text-lg sm:text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Practice with real interviewers, get instant feedback, and boost
+              your confidence. Our platform matches you with the perfect
+              interviewer based on your expertise level.
+            </Paragraph>
+          </motion.div>
           <motion.div
-            className="flex justify-center space-x-4"
+            className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <motion.button
+            <Button
+              gradientDuoTone="cyanToBlue"
+              size="lg"
               onClick={handleGetStarted}
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors duration-200 flex items-center"
-              variants={buttonVariants}
-              whileHover="hover"
-              whileTap="tap"
+              className="px-8 py-3 text-base font-medium rounded-lg btn-pulse shadow-md hover:shadow-lg"
             >
-              Start Practicing
-              <FaArrowRight className="ml-2" />
-            </motion.button>
-            <motion.button
-              onClick={() => navigate('/login')}
-              className="bg-white text-blue-600 border border-blue-600 px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition-colors duration-200"
-              variants={buttonVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              Sign In
-            </motion.button>
+              <div className="flex items-center justify-center">
+                {user ? 'Browse Available Slots' : 'Start Practicing'}
+                <ArrowRightOutlined className="ml-2" />
+              </div>
+            </Button>
+            {!user && (
+              <Button
+                color="light"
+                size="lg"
+                onClick={() => navigate('/login')}
+                className="border border-blue-600 text-blue-600 px-8 py-3 text-base font-medium rounded-lg hover:bg-blue-50 transition-all duration-300 ease-in-out shadow-sm hover:shadow-md"
+              >
+                Sign In
+              </Button>
+            )}
           </motion.div>
         </div>
       </motion.div>
 
+      {/* Stats Section */}
+      <motion.div className="bg-white py-14 shadow-sm" variants={itemVariants}>
+        <div className="max-w-7xl mx-auto px-4">
+          <Row gutter={[32, 32]} justify="center">
+            <Col xs={12} md={6}>
+              <Statistic
+                title={
+                  <span className="text-gray-700 font-medium">
+                    Active Interviewers
+                  </span>
+                }
+                value={50}
+                prefix={<TeamOutlined className="text-blue-600 mr-2" />}
+                className="text-center"
+                valueStyle={{ fontSize: 28, fontWeight: 600, color: '#1a56db' }}
+              />
+            </Col>
+            <Col xs={12} md={6}>
+              <Statistic
+                title={
+                  <span className="text-gray-700 font-medium">
+                    Interviews Completed
+                  </span>
+                }
+                value={1250}
+                prefix={<CheckCircleOutlined className="text-green-600 mr-2" />}
+                className="text-center"
+                valueStyle={{ fontSize: 28, fontWeight: 600, color: '#059669' }}
+              />
+            </Col>
+            <Col xs={12} md={6}>
+              <Statistic
+                title={
+                  <span className="text-gray-700 font-medium">
+                    Available Slots
+                  </span>
+                }
+                value={122}
+                prefix={<CalendarOutlined className="text-amber-600 mr-2" />}
+                className="text-center"
+                valueStyle={{ fontSize: 28, fontWeight: 600, color: '#d97706' }}
+              />
+            </Col>
+            <Col xs={12} md={6}>
+              <Statistic
+                title={
+                  <span className="text-gray-700 font-medium">
+                    Supported Technologies
+                  </span>
+                }
+                value={24}
+                prefix={<LaptopOutlined className="text-purple-600 mr-2" />}
+                className="text-center"
+                valueStyle={{ fontSize: 28, fontWeight: 600, color: '#7c3aed' }}
+              />
+            </Col>
+          </Row>
+        </div>
+      </motion.div>
+
       {/* Features Section */}
-      <motion.div className="bg-white py-16" variants={itemVariants}>
+      <motion.div className="py-20" variants={itemVariants}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2
-            className="text-3xl font-bold text-center text-gray-900 mb-12"
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
+            className="mb-16"
           >
-            Why Choose Mockzy?
-          </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <motion.div
-              className="bg-blue-50 p-6 rounded-lg hover:shadow-lg transition-shadow duration-300"
-              whileHover={{ y: -5 }}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
+            <Title
+              level={2}
+              className="text-center text-3xl sm:text-4xl font-bold mb-4"
             >
-              <div className="text-blue-600 text-4xl mb-4">
-                <FaChartLine />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Expert-Level Matching
-              </h3>
-              <p className="text-gray-600">
-                Get matched with interviewers based on your expertise level for
-                the most relevant practice.
-              </p>
-            </motion.div>
+              Why Choose Mockzy?
+            </Title>
+            <Divider className="max-w-xs mx-auto mb-8 border-blue-200" />
+          </motion.div>
+
+          <Row gutter={[32, 32]}>
+            {/* Feature 1 */}
+            <Col xs={24} md={8}>
+              <motion.div
+                whileHover={{ y: -8 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
+              >
+                <Card className="h-full hover:shadow-lg card-soft-shadow border-gray-200">
+                  <div className="text-blue-600 text-5xl mb-6 flex justify-center">
+                    <RiseOutlined />
+                  </div>
+                  <Title level={4} className="text-center mb-4 text-gray-900">
+                    Expert-Level Matching
+                  </Title>
+                  <Paragraph className="text-center text-gray-600">
+                    Get matched with interviewers based on your expertise level
+                    for the most relevant practice.
+                  </Paragraph>
+                </Card>
+              </motion.div>
+            </Col>
 
             {/* Feature 2 */}
-            <motion.div
-              className="bg-blue-50 p-6 rounded-lg hover:shadow-lg transition-shadow duration-300"
-              whileHover={{ y: -5 }}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <div className="text-blue-600 text-4xl mb-4">
-                <FaCheckCircle />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Resume Analysis
-              </h3>
-              <p className="text-gray-600">
-                Upload your resume for instant analysis and personalized
-                interview recommendations.
-              </p>
-            </motion.div>
+            <Col xs={24} md={8}>
+              <motion.div
+                whileHover={{ y: -8 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card className="h-full hover:shadow-lg card-soft-shadow border-gray-200">
+                  <div className="text-green-600 text-5xl mb-6 flex justify-center">
+                    <ClockCircleOutlined />
+                  </div>
+                  <Title level={4} className="text-center mb-4 text-gray-900">
+                    Flexible Scheduling
+                  </Title>
+                  <Paragraph className="text-center text-gray-600">
+                    Book interviews at your convenience with our easy-to-use
+                    calendar system.
+                  </Paragraph>
+                </Card>
+              </motion.div>
+            </Col>
 
             {/* Feature 3 */}
-            <motion.div
-              className="bg-blue-50 p-6 rounded-lg hover:shadow-lg transition-shadow duration-300"
-              whileHover={{ y: -5 }}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              <div className="text-blue-600 text-4xl mb-4">
-                <FaClock />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Flexible Scheduling
-              </h3>
-              <p className="text-gray-600">
-                Book interviews at your convenience with our easy-to-use
-                scheduling system.
-              </p>
-            </motion.div>
-          </div>
+            <Col xs={24} md={8}>
+              <motion.div
+                whileHover={{ y: -8 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
+                <Card className="h-full hover:shadow-lg card-soft-shadow border-gray-200">
+                  <div className="text-purple-600 text-5xl mb-6 flex justify-center">
+                    <UserOutlined />
+                  </div>
+                  <Title level={4} className="text-center mb-4 text-gray-900">
+                    Personalized Feedback
+                  </Title>
+                  <Paragraph className="text-center text-gray-600">
+                    Receive detailed feedback and suggestions to improve after
+                    each interview session.
+                  </Paragraph>
+                </Card>
+              </motion.div>
+            </Col>
+          </Row>
         </div>
       </motion.div>
 
       {/* How It Works Section */}
-      <motion.div className="py-16" variants={itemVariants}>
+      <motion.div
+        className="py-20 bg-gradient-to-b from-white to-blue-50"
+        variants={itemVariants}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2
-            className="text-3xl font-bold text-center text-gray-900 mb-12"
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
+            className="mb-16"
           >
-            How It Works
-          </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Step 1 */}
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
+            <Title
+              level={2}
+              className="text-center text-3xl sm:text-4xl font-bold mb-4"
             >
-              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-blue-600 font-bold">1</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Sign Up
-              </h3>
-              <p className="text-gray-600">
-                Create your account and set up your profile
-              </p>
-            </motion.div>
+              How It Works
+            </Title>
+            <Divider className="max-w-xs mx-auto mb-8 border-blue-200" />
+          </motion.div>
 
-            {/* Step 2 */}
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-blue-600 font-bold">2</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Upload Resume
-              </h3>
-              <p className="text-gray-600">Get your expertise level analyzed</p>
-            </motion.div>
-
-            {/* Step 3 */}
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-blue-600 font-bold">3</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Book Interview
-              </h3>
-              <p className="text-gray-600">Choose a slot that works for you</p>
-            </motion.div>
-
-            {/* Step 4 */}
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-blue-600 font-bold">4</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Practice & Improve
-              </h3>
-              <p className="text-gray-600">
-                Get feedback and track your progress
-              </p>
-            </motion.div>
+          <div className="max-w-4xl mx-auto">
+            <Timeline>
+              <Timeline.Item className="flowbite-timeline-item">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true }}
+                >
+                  <Title level={5} className="text-xl font-semibold mb-2">
+                    Create Your Account
+                  </Title>
+                  <Paragraph className="text-gray-600">
+                    Sign up and upload your resume. Our system will analyze your
+                    skills and experience level.
+                  </Paragraph>
+                </motion.div>
+              </Timeline.Item>
+              <Timeline.Item className="flowbite-timeline-item">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Title level={5} className="text-xl font-semibold mb-2">
+                    Browse Available Slots
+                  </Title>
+                  <Paragraph className="text-gray-600">
+                    Explore and filter interview slots based on expertise level,
+                    date, or time that work for you.
+                  </Paragraph>
+                </motion.div>
+              </Timeline.Item>
+              <Timeline.Item className="flowbite-timeline-item">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <Title level={5} className="text-xl font-semibold mb-2">
+                    Book Your Interview
+                  </Title>
+                  <Paragraph className="text-gray-600">
+                    Select a slot and book your mock interview session with just
+                    a few clicks.
+                  </Paragraph>
+                </motion.div>
+              </Timeline.Item>
+              <Timeline.Item className="flowbite-timeline-item">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  viewport={{ once: true }}
+                >
+                  <Title level={5} className="text-xl font-semibold mb-2">
+                    Attend and Improve
+                  </Title>
+                  <Paragraph className="text-gray-600">
+                    Join your interview, practice your skills, and receive
+                    valuable feedback to enhance your performance.
+                  </Paragraph>
+                </motion.div>
+              </Timeline.Item>
+            </Timeline>
           </div>
+
+          <motion.div
+            className="text-center mt-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            viewport={{ once: true }}
+          >
+            <Button
+              gradientDuoTone="purpleToBlue"
+              size="lg"
+              onClick={handleGetStarted}
+              className="px-8 py-3 text-base font-medium rounded-lg shadow-md hover:shadow-lg btn-pulse"
+            >
+              <div className="flex items-center">
+                {user ? 'Book Your First Interview' : 'Get Started Today'}
+                <ArrowRightOutlined className="ml-2" />
+              </div>
+            </Button>
+          </motion.div>
         </div>
       </motion.div>
-
-      {/* Footer */}
-      <motion.footer
-        className="bg-gray-900 text-white py-8"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        viewport={{ once: true }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <motion.div className="mb-4 md:mb-0" whileHover={{ scale: 1.05 }}>
-              <span className="text-2xl font-bold text-blue-400">Mockzy</span>
-              <p className="text-gray-400 mt-2">
-                Your path to interview success
-              </p>
-            </motion.div>
-            <div className="flex space-x-4">
-              <motion.a
-                href="#"
-                className="text-gray-400 hover:text-white"
-                whileHover={{ scale: 1.1 }}
-              >
-                About
-              </motion.a>
-              <motion.a
-                href="#"
-                className="text-gray-400 hover:text-white"
-                whileHover={{ scale: 1.1 }}
-              >
-                Contact
-              </motion.a>
-              <motion.a
-                href="#"
-                className="text-gray-400 hover:text-white"
-                whileHover={{ scale: 1.1 }}
-              >
-                Privacy Policy
-              </motion.a>
-            </div>
-          </div>
-          <div className="mt-8 text-center text-gray-400">
-            © {new Date().getFullYear()} Mockzy. All rights reserved.
-          </div>
-        </div>
-      </motion.footer>
     </motion.div>
   )
 }

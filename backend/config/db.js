@@ -4,13 +4,19 @@ import dotenv from 'dotenv'
 // Initialize dotenv
 dotenv.config()
 
-const pool = new pg.Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'mockzy',
-  password: process.env.DB_PASSWORD || 'postgres',
-  port: process.env.DB_PORT || 5432,
-})
+// Use DATABASE_URL for cloud deployment (Neon, Render, etc.)
+const pool = process.env.DATABASE_URL 
+  ? new pg.Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    })
+  : new pg.Pool({
+      user: process.env.DB_USER || 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      database: process.env.DB_NAME || 'mockzy',
+      password: process.env.DB_PASSWORD || 'postgres',
+      port: process.env.DB_PORT || 5432,
+    })
 
 // Initialize database tables
 const initDB = async () => {

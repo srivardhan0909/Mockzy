@@ -48,3 +48,71 @@ export const updateSlotStatus = async (slotId, isBooked, bookedBy = null) => {
   )
   return result.rows[0]
 }
+
+// Track completed interviews
+export const recordCompletedInterview = async (interviewerId) => {
+  try {
+    // Check if the interviewer has a completion record
+    const checkResult = await pool.query(
+      'SELECT * FROM interview_completions WHERE interviewer_id = $1',
+      [interviewerId]
+    )
+
+    if (checkResult.rows.length === 0) {
+      // Create a new record if none exists
+      await pool.query(
+        'INSERT INTO interview_completions (interviewer_id, completed_count) VALUES ($1, 1)',
+        [interviewerId]
+      )
+    } else {
+      // Increment the existing counter
+      await pool.query(
+        'UPDATE interview_completions SET completed_count = completed_count + 1 WHERE interviewer_id = $1',
+        [interviewerId]
+      )
+    }
+
+    // Return the updated count
+    const result = await pool.query(
+      'SELECT completed_count FROM interview_completions WHERE interviewer_id = $1',
+      [interviewerId]
+    )
+
+    return result.rows[0]?.completed_count || 1
+  } catch (err) {
+    console.error('Error recording completed interview:', err)
+    return 0
+  }
+}
+
+// Get completed interview count for an interviewer
+export const getCompletedInterviewCount = async (interviewerId) => {
+  try {
+    const result = await pool.query(
+      'SELECT completed_count FROM interview_completions WHERE interviewer_id = $1',
+      [interviewerId]
+    )
+
+    return result.rows[0]?.completed_count || 0
+  } catch (err) {
+    console.error('Error getting completed interview count:', err)
+    return 0
+  }
+}
+
+export const createCompletionsTable = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS interview_completions (
+        id SERIAL PRIMARY KEY,
+        interviewer_id INTEGER REFERENCES users(id),
+        completed_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+    console.log('Interview completions table created successfully')
+  } catch (err) {
+    console.error('Error creating interview completions table:', err)
+  }
+}

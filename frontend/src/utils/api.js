@@ -1,10 +1,16 @@
 // src/utils/api.js
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:3000/api';
+// Central API base URL - uses environment variable in production
+export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+// Create axios instance with base URL
+export const api = axios.create({
+  baseURL: API_BASE,
+});
 
 export const fetchAllSlots = async () => {
-  const res = await axios.get(`${API_BASE}/slots`);
+  const res = await api.get('/slots');
   return res.data;
 };
 

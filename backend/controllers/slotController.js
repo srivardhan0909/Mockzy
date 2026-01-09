@@ -1,4 +1,8 @@
-import { createSlot, updateSlotStatus } from '../models/Slot.js'
+import {
+  createSlot,
+  updateSlotStatus,
+  recordCompletedInterview,
+} from '../models/Slot.js'
 import pool from '../config/db.js'
 
 // Create a new slot (for interviewers)
@@ -84,6 +88,31 @@ export const getAllSlots = async (req, res) => {
   }
 }
 
+// GET /api/slots/:id - Check if slot is available
+export const getSlotById = async (req, res) => {
+  const slotId = req.params.id
+
+  try {
+    const result = await pool.query(
+      'SELECT s.*, u.username as interviewer_name, i.expertise_level ' +
+        'FROM slots s ' +
+        'LEFT JOIN users u ON s.admin_id = u.id ' +
+        'LEFT JOIN interviewers i ON u.id = i.user_id ' +
+        'WHERE s.id = $1',
+      [slotId]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Slot not found' })
+    }
+
+    res.json(result.rows[0])
+  } catch (err) {
+    console.error('Error fetching slot:', err.message)
+    res.status(500).json({ message: 'Server error' })
+  }
+}
+
 // Book a slot
 export const bookSlot = async (req, res) => {
   const { slotId } = req.body
@@ -103,17 +132,26 @@ export const bookSlot = async (req, res) => {
 
     // Check for time conflicts
     const conflictResult = await pool.query(
-      'SELECT * FROM slots WHERE booked_by = $1 AND date = $2',
+      `SELECT s.* 
+       FROM slots s 
+       WHERE s.booked_by = $1 
+         AND s.date = $2
+         AND s.status = 'booked'`,
       [userId, slot.date]
     )
 
     if (conflictResult.rows.length > 0) {
       // Find alternative slots
       const alternativeSlots = await pool.query(
-        'SELECT s.*, u.username as interviewer_name FROM slots s ' +
-          'LEFT JOIN users u ON s.admin_id = u.id ' +
-          "WHERE s.date = $1 AND s.id != $2 AND s.status = 'available' " +
-          'ORDER BY s.time',
+        `SELECT s.*, u.username as interviewer_name, i.expertise_level 
+         FROM slots s 
+         LEFT JOIN users u ON s.admin_id = u.id 
+         LEFT JOIN interviewers i ON u.id = i.user_id 
+         WHERE s.date = $1 
+           AND s.id != $2 
+           AND s.status = 'available' 
+           AND s.is_booked = false
+         ORDER BY s.time`,
         [slot.date, slotId]
       )
 
@@ -228,6 +266,120 @@ export const getSlots = async (req, res) => {
     res.json(result.rows)
   } catch (err) {
     console.error('Error fetching slots:', err)
+    res.status(500).json({ message: 'Server Error' })
+  }
+}
+
+// Mark a slot as complete
+export const markSlotComplete = async (req, res) => {
+  try {
+    const { id } = req.params
+    const userId = req.user.id
+
+    // Check if the slot exists and belongs to this interviewer
+    const checkQuery = `
+      SELECT * FROM slots 
+      WHERE id = $1 AND admin_id = $2
+    `
+    const checkResult = await pool.query(checkQuery, [id, userId])
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Slot not found or unauthorized' })
+    }
+
+    // Check if the slot is booked
+    if (!checkResult.rows[0].is_booked) {
+      return res
+        .status(400)
+        .json({ message: 'Cannot mark an unbooked slot as complete' })
+    }
+
+    // Record the completed interview
+    await recordCompletedInterview(userId)
+
+    // Delete the slot (marking as complete)
+    const deleteQuery = `
+      DELETE FROM slots 
+      WHERE id = $1 AND admin_id = $2
+    `
+    await pool.query(deleteQuery, [id, userId])
+
+    res.json({ message: 'Interview marked as complete' })
+  } catch (err) {
+    console.error('Error marking slot as complete:', err.message)
+    res.status(500).json({ message: 'Server Error' })
+  }
+}
+
+// Get all bookings for a user
+export const getUserBookings = async (req, res) => {
+  const userId = req.user.id
+
+  try {
+    // Get slots booked by this user with interviewer details
+    const result = await pool.query(
+      `SELECT s.*, 
+             u.username as interviewer_name, 
+             i.expertise_level,
+             u.id as interviewer_id,
+             u.email as interviewer_email,
+             s.time as start_time,
+             CONCAT(
+               TO_CHAR((s.time::time + (s.duration || ' minutes')::interval), 'HH24:MI:SS')
+             ) as end_time
+       FROM slots s
+       LEFT JOIN users u ON s.admin_id = u.id
+       LEFT JOIN interviewers i ON u.id = i.user_id
+       WHERE s.booked_by = $1 AND s.is_booked = true
+       ORDER BY s.date DESC, s.time ASC`,
+      [userId]
+    )
+
+    res.json(result.rows)
+  } catch (err) {
+    console.error('Error fetching user bookings:', err.message)
+    res.status(500).json({ message: 'Server Error' })
+  }
+}
+
+// Cancel a booking (for candidates)
+export const cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params
+    const userId = req.user.id
+
+    // Check if the slot exists and is booked by this user
+    const checkQuery = `
+      SELECT * FROM slots 
+      WHERE id = $1 AND booked_by = $2
+    `
+    const checkResult = await pool.query(checkQuery, [id, userId])
+
+    if (checkResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'Booking not found or unauthorized' })
+    }
+
+    // Reset the slot status to available
+    const updateQuery = `
+      UPDATE slots 
+      SET status = 'available', is_booked = false, booked_by = NULL 
+      WHERE id = $1 AND booked_by = $2
+      RETURNING *
+    `
+    const updateResult = await pool.query(updateQuery, [id, userId])
+
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Failed to cancel booking' })
+    }
+
+    res.json({
+      message: 'Booking cancelled successfully',
+      slot: updateResult.rows[0],
+    })
+  } catch (err) {
+    console.error('Error cancelling booking:', err.message)
     res.status(500).json({ message: 'Server Error' })
   }
 }

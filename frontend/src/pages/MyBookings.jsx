@@ -1,15 +1,37 @@
 import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { FaCalendarAlt, FaClock, FaUserTie, FaTrash } from 'react-icons/fa'
+import { toast } from 'react-toastify'
+import { Button, Spinner, Card } from 'flowbite-react'
+import { API_BASE } from '../utils/api'
+import {
+  Table,
+  Typography,
+  Space,
+  Tag,
+  Modal,
+  Empty,
+  Tooltip,
+  Badge,
+} from 'antd'
+import {
+  CalendarOutlined,
+  ClockCircleOutlined,
+  UserOutlined,
+  DeleteOutlined,
+  MailOutlined,
+  ArrowLeftOutlined,
+  ExclamationCircleOutlined,
+} from '@ant-design/icons'
+
+const { Title, Text } = Typography
+const { confirm } = Modal
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  // Stack implementation for managing bookings
-  const [bookingStack, setBookingStack] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchBookings()
@@ -17,198 +39,289 @@ const MyBookings = () => {
 
   const fetchBookings = async () => {
     try {
+      setLoading(true)
       const token = localStorage.getItem('token')
-      const userId = localStorage.getItem('userId')
 
-      // Fetch all slots and filter for user's bookings
-      const response = await axios.get('http://localhost:3000/api/slots', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      // Filter slots that are booked by the current user
-      const bookedSlots = response.data.filter(
-        (slot) => slot.bookedBy === userId || slot.userId === userId
+      // Use the dedicated endpoint for user bookings
+      const response = await axios.get(
+        `${API_BASE}/slots/my-bookings`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       )
 
-      const sortedBookings = bookedSlots
-        .map((slot) => ({
-          _id: slot._id,
-          slot: {
-            ...slot,
-            date: slot.date || new Date(),
-            startTime: slot.startTime || '00:00',
-            endTime: slot.endTime || '00:00',
-            interviewer: {
-              name: slot.interviewerName || 'Unknown Interviewer',
-            },
-          },
-        }))
-        .sort((a, b) => new Date(b.slot.date) - new Date(a.slot.date))
-
-      setBookings(sortedBookings)
-      setBookingStack(sortedBookings)
+      setBookings(response.data)
       setLoading(false)
     } catch (error) {
       console.error('Error fetching bookings:', error)
+      toast.error('Failed to fetch bookings')
       setError('Failed to fetch bookings')
       setLoading(false)
     }
   }
 
   const handleCancelBooking = async (bookingId) => {
+    confirm({
+      title: 'Are you sure you want to cancel this booking?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'This will remove the interview from your schedule.',
+      okText: 'Yes, Cancel',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        confirmCancelBooking(bookingId)
+      },
+    })
+  }
+
+  const confirmCancelBooking = async (bookingId) => {
     try {
       const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:3000/api/slots/${bookingId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      // Use the new cancel booking endpoint
+      await axios.post(
+        `${API_BASE}/slots/${bookingId}/cancel`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
 
-      // Remove booking from stack
-      setBookingStack((prevStack) =>
-        prevStack.filter((booking) => booking._id !== bookingId)
-      )
+      // Remove booking from the UI
       setBookings((prevBookings) =>
-        prevBookings.filter((booking) => booking._id !== bookingId)
+        prevBookings.filter((booking) => booking.id !== bookingId)
       )
+
+      toast.success('Booking cancelled successfully')
     } catch (error) {
       console.error('Error canceling booking:', error)
-      alert('Failed to cancel booking')
+
+      if (error.response && error.response.status === 404) {
+        toast.error('Booking not found or already cancelled')
+      } else {
+        toast.error('Failed to cancel booking. Please try again.')
+      }
     }
   }
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
+  const formatTime = (timeString) => {
+    if (!timeString) return 'N/A'
+
+    try {
+      const timeParts = timeString.split(':')
+      const hours = parseInt(timeParts[0])
+      const minutes = parseInt(timeParts[1])
+
+      const date = new Date()
+      date.setHours(hours)
+      date.setMinutes(minutes)
+
+      return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      })
+    } catch (error) {
+      console.error('Error formatting time:', error)
+      return timeString
+    }
   }
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A'
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    } catch (error) {
+      console.error('Error formatting date:', error)
+      return dateString
+    }
+  }
+
+  const columns = [
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      render: (text) => (
+        <Space>
+          <CalendarOutlined className="text-primary-500" />
+          {formatDate(text)}
+        </Space>
+      ),
+      sorter: (a, b) => new Date(a.date) - new Date(b.date),
+    },
+    {
+      title: 'Time',
+      dataIndex: 'time',
+      key: 'time',
+      render: (text, record) => (
+        <Space>
+          <ClockCircleOutlined className="text-primary-500" />
+          {formatTime(text)}
+          {record.duration && (
+            <Text type="secondary">({record.duration} mins)</Text>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: 'Interviewer',
+      dataIndex: 'interviewer_name',
+      key: 'interviewer_name',
+      render: (text) => (
+        <Space>
+          <UserOutlined className="text-primary-500" />
+          {text || 'Not assigned'}
+        </Space>
+      ),
+    },
+    {
+      title: 'Experience Level',
+      dataIndex: 'expertise_level',
+      key: 'expertise_level',
+      render: (text) => {
+        let color = 'default'
+        if (text && text.toLowerCase() === 'expert') {
+          color = 'gold'
+        } else if (text && text.toLowerCase() === 'moderate') {
+          color = 'blue'
+        } else if (text && text.toLowerCase() === 'beginner') {
+          color = 'green'
+        }
+        return <Tag color={color}>{text || 'Not specified'}</Tag>
       },
     },
-  }
+    {
+      title: 'Mode',
+      dataIndex: 'mode',
+      key: 'mode',
+      render: (text) => (
+        <Badge
+          status={text === 'Online' ? 'success' : 'processing'}
+          text={text || 'Not specified'}
+        />
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space size="middle">
+          {record.interviewer_email && (
+            <Tooltip title={`Email: ${record.interviewer_email}`}>
+              <Button size="xs" color="info">
+                <MailOutlined />
+              </Button>
+            </Tooltip>
+          )}
+          <Button
+            size="xs"
+            color="failure"
+            onClick={() => handleCancelBooking(record.id)}
+          >
+            <DeleteOutlined />
+          </Button>
+        </Space>
+      ),
+    },
+  ]
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <Button disabled>
+          <Spinner size="sm" className="me-3" />
+          Loading...
+        </Button>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-red-500">
-        {error}
+      <div className="flex justify-center items-center min-h-screen p-4">
+        <Card className="max-w-md w-full bg-red-50 border-red-300">
+          <div className="text-center text-red-600">
+            <ExclamationCircleOutlined className="text-3xl mb-2" />
+            <Title level={4} className="text-red-600">
+              Error Loading Bookings
+            </Title>
+            <Text>{error}</Text>
+            <div className="mt-4">
+              <Button color="blue" onClick={() => fetchBookings()}>
+                Try Again
+              </Button>
+              <Button
+                color="light"
+                onClick={() => navigate('/all-slots')}
+                className="ml-2"
+              >
+                Browse Slots
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
+  if (bookings.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="flex items-center mb-6">
+          <Button color="light" onClick={() => navigate('/')} className="mr-4">
+            <ArrowLeftOutlined className="mr-1" /> Back
+          </Button>
+          <Title level={2} className="m-0">
+            My Bookings
+          </Title>
+        </div>
+
+        <Empty
+          description="You don't have any bookings yet"
+          className="my-12"
+        />
+
+        <div className="text-center">
+          <Button color="blue" onClick={() => navigate('/all-slots')}>
+            Browse Available Slots
+          </Button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
+    <div className="p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <Title level={2} className="m-0">
             My Booked Interviews
-          </h1>
-
-          {bookingStack.length === 0 ? (
-            <motion.div className="text-center py-12" variants={itemVariants}>
-              <p className="text-gray-600 text-lg">
-                You haven't booked any interviews yet.
-              </p>
-              <p className="text-gray-500 mt-2">
-                Book your first interview from the available slots!
-              </p>
-            </motion.div>
-          ) : (
-            <div className="grid gap-6">
-              {bookingStack.map((booking, index) => (
-                <motion.div
-                  key={booking._id}
-                  variants={itemVariants}
-                  className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300"
-                  style={{
-                    zIndex: bookingStack.length - index,
-                    transform: `translateY(${index * 2}px)`,
-                  }}
-                >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-2">
-                        <FaCalendarAlt className="text-blue-500" />
-                        <span className="font-medium">
-                          {new Date(booking.slot.date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <FaClock className="text-blue-500" />
-                        <span className="font-medium">
-                          {booking.slot.startTime} - {booking.slot.endTime}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <FaUserTie className="text-blue-500" />
-                        <span className="font-medium">
-                          Interviewer: {booking.slot.interviewer.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className="px-3 py-1 rounded-full text-sm font-medium"
-                          style={{
-                            backgroundColor:
-                              booking.slot.expertise_level === 'beginner'
-                                ? '#DCFCE7'
-                                : booking.slot.expertise_level === 'moderate'
-                                ? '#FEF3C7'
-                                : '#FEE2E2',
-                            color:
-                              booking.slot.expertise_level === 'beginner'
-                                ? '#166534'
-                                : booking.slot.expertise_level === 'moderate'
-                                ? '#92400E'
-                                : '#991B1B',
-                          }}
-                        >
-                          {booking.slot.expertise_level
-                            .charAt(0)
-                            .toUpperCase() +
-                            booking.slot.expertise_level.slice(1)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 md:mt-0 flex items-center space-x-4">
-                      <motion.button
-                        onClick={() => handleCancelBooking(booking._id)}
-                        className="flex items-center space-x-2 text-red-600 hover:text-red-700"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <FaTrash />
-                        <span>Cancel Booking</span>
-                      </motion.button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+          </Title>
+          <Button color="blue" onClick={() => navigate('/all-slots')}>
+            <div className="flex items-center">
+              <ArrowLeftOutlined className="mr-2" /> Back to Slots
             </div>
-          )}
-        </motion.div>
+          </Button>
+        </div>
+
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <Table
+            columns={columns}
+            dataSource={bookings.map((booking) => ({
+              ...booking,
+              key: booking.id,
+            }))}
+            pagination={{ pageSize: 10 }}
+            responsive
+            className="my-bookings-table"
+          />
+        </div>
       </div>
     </div>
   )

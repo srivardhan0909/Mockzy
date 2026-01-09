@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { Button, Spinner } from 'flowbite-react'
+import { API_BASE } from '../utils/api'
 
 const InterviewerProfile = () => {
   const [profile, setProfile] = useState({
@@ -16,6 +18,8 @@ const InterviewerProfile = () => {
   const [error, setError] = useState('')
   const [newSkill, setNewSkill] = useState('')
   const [newCertification, setNewCertification] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -28,10 +32,11 @@ const InterviewerProfile = () => {
   }, [navigate])
 
   const fetchExistingProfile = async () => {
+    setLoading(true)
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(
-        'http://localhost:3000/api/interviewers/profile',
+        `${API_BASE}/interviewers/profile`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -52,20 +57,24 @@ const InterviewerProfile = () => {
             : [],
         })
       }
+      setLoading(false)
     } catch (error) {
       if (error.response?.status !== 404) {
         console.error('Error fetching profile:', error)
         setError('Failed to fetch profile')
       }
+      setLoading(false)
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setSaving(true)
     try {
       const token = localStorage.getItem('token')
       if (!token) {
         setError('Please login to continue')
+        setSaving(false)
         return
       }
 
@@ -84,7 +93,7 @@ const InterviewerProfile = () => {
       }
 
       const response = await axios.post(
-        'http://localhost:3000/api/interviewers/profile',
+        `${API_BASE}/interviewers/profile`,
         formattedProfile,
         {
           headers: {
@@ -102,6 +111,7 @@ const InterviewerProfile = () => {
     } catch (error) {
       console.error('Error saving profile:', error)
       setError(error.response?.data?.message || 'Failed to save profile')
+      setSaving(false)
     }
   }
 
@@ -153,196 +163,229 @@ const InterviewerProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden md:max-w-2xl p-8">
+        <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-8">
           Interviewer Profile
         </h2>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Button disabled>
+              <Spinner size="sm" className="me-3" />
+              Loading...
+            </Button>
           </div>
+        ) : (
+          <>
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={profile.name}
+                  onChange={(e) =>
+                    setProfile({ ...profile, name: e.target.value })
+                  }
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Current Occupation
+                </label>
+                <input
+                  type="text"
+                  value={profile.current_occupation}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      current_occupation: e.target.value,
+                    })
+                  }
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Years of Experience
+                </label>
+                <input
+                  type="number"
+                  value={profile.experience}
+                  onChange={(e) =>
+                    setProfile({ ...profile, experience: e.target.value })
+                  }
+                  required
+                  min="0"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Expertise Level
+                </label>
+                <select
+                  value={profile.expertise_level}
+                  onChange={(e) =>
+                    setProfile({ ...profile, expertise_level: e.target.value })
+                  }
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="beginner">Beginner</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="expert">Expert</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Bio
+                </label>
+                <textarea
+                  value={profile.bio}
+                  onChange={(e) =>
+                    setProfile({ ...profile, bio: e.target.value })
+                  }
+                  rows="4"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={profile.location}
+                  onChange={(e) =>
+                    setProfile({ ...profile, location: e.target.value })
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                <label className="w-full block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Skills
+                </label>
+                {Array.isArray(profile.skills) &&
+                  profile.skills.map((skill, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm"
+                    >
+                      {skill}
+                      <Button
+                        size="xs"
+                        color="light"
+                        onClick={() => removeSkill(index)}
+                        className="ml-2 p-1"
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  ))}
+                <div className="flex w-full mt-2">
+                  <input
+                    type="text"
+                    value={newSkill}
+                    onChange={(e) => setNewSkill(e.target.value)}
+                    placeholder="Add a skill"
+                    className="mt-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                  <Button
+                    color="blue"
+                    onClick={addSkill}
+                    className="rounded-l-none"
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                <label className="w-full block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Certifications
+                </label>
+                {Array.isArray(profile.certifications) &&
+                  profile.certifications.map((cert, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm"
+                    >
+                      {cert}
+                      <Button
+                        size="xs"
+                        color="light"
+                        onClick={() => removeCertification(index)}
+                        className="ml-2 p-1"
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  ))}
+                <div className="flex w-full mt-2">
+                  <input
+                    type="text"
+                    value={newCertification}
+                    onChange={(e) => setNewCertification(e.target.value)}
+                    placeholder="Add a certification"
+                    className="mt-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                  <Button
+                    color="green"
+                    onClick={addCertification}
+                    className="rounded-l-none"
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex space-x-4">
+                <Button
+                  type="submit"
+                  color="blue"
+                  className="w-full"
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <Spinner size="sm" className="me-3" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Profile'
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  color="light"
+                  className="w-full"
+                  onClick={() => navigate('/interviewer-dashboard')}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </>
         )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={profile.name}
-              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Current Occupation
-            </label>
-            <input
-              type="text"
-              value={profile.current_occupation}
-              onChange={(e) =>
-                setProfile({ ...profile, current_occupation: e.target.value })
-              }
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Years of Experience
-            </label>
-            <input
-              type="number"
-              value={profile.experience}
-              onChange={(e) =>
-                setProfile({ ...profile, experience: e.target.value })
-              }
-              required
-              min="0"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Expertise Level
-            </label>
-            <select
-              value={profile.expertise_level}
-              onChange={(e) =>
-                setProfile({ ...profile, expertise_level: e.target.value })
-              }
-              required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            >
-              <option value="beginner">Beginner</option>
-              <option value="moderate">Moderate</option>
-              <option value="expert">Expert</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Bio
-            </label>
-            <textarea
-              value={profile.bio}
-              onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-              rows="4"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Location
-            </label>
-            <input
-              type="text"
-              value={profile.location}
-              onChange={(e) =>
-                setProfile({ ...profile, location: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Skills
-            </label>
-            <div className="mt-1 flex">
-              <input
-                type="text"
-                value={newSkill}
-                onChange={(e) => setNewSkill(e.target.value)}
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Add a skill"
-              />
-              <button
-                type="button"
-                onClick={addSkill}
-                className="ml-2 px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Add
-              </button>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {Array.isArray(profile.skills) &&
-                profile.skills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                  >
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => removeSkill(index)}
-                      className="ml-1 text-blue-600 hover:text-blue-800"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Certifications
-            </label>
-            <div className="mt-1 flex">
-              <input
-                type="text"
-                value={newCertification}
-                onChange={(e) => setNewCertification(e.target.value)}
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Add a certification"
-              />
-              <button
-                type="button"
-                onClick={addCertification}
-                className="ml-2 px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Add
-              </button>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {Array.isArray(profile.certifications) &&
-                profile.certifications.map((certification, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                  >
-                    {certification}
-                    <button
-                      type="button"
-                      onClick={() => removeCertification(index)}
-                      className="ml-1 text-green-600 hover:text-green-800"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Save Profile
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   )

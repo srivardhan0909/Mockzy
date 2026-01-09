@@ -1,6 +1,7 @@
 // src/pages/AdminSlotList.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE } from '../utils/api';
 
 const AdminSlotList = () => {
   const [slots, setSlots] = useState([]);
@@ -18,7 +19,7 @@ const AdminSlotList = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/slots/conflicts');
+        const res = await axios.get(`${API_BASE}/slots/conflicts`);
         setSlots(res.data.slots);
         setConflicts(res.data.conflicts);
       } catch (err) {

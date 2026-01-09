@@ -6,7 +6,7 @@ import slotRoutes from './routes/slotRoutes.js'
 import interviewerRoutes from './routes/interviewerRoutes.js'
 import resumeRoutes from './routes/resumeRoutes.js'
 import { createUserTable, createResumesTable } from './models/User.js'
-import { createSlotsTable } from './models/Slot.js'
+import { createSlotsTable, createCompletionsTable } from './models/Slot.js'
 
 // Initialize dotenv
 dotenv.config()
@@ -20,6 +20,7 @@ const initializeDatabase = async () => {
     await createUserTable()
     await createResumesTable()
     await createSlotsTable()
+    await createCompletionsTable()
     console.log('Database tables initialized successfully')
   } catch (err) {
     console.error('Error initializing database tables:', err)
@@ -32,7 +33,7 @@ initializeDatabase()
 // Middlewares
 app.use(
   cors({
-    origin: 'http://localhost:5173', // Your frontend URL
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true,
   })
 )

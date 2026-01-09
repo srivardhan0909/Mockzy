@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { Button, Spinner } from 'flowbite-react'
+import { API_BASE } from '../utils/api'
 
 const BookSlot = () => {
   const [slots, setSlots] = useState([])
@@ -11,6 +13,7 @@ const BookSlot = () => {
   const [popupMessage, setPopupMessage] = useState('')
   const [popupType, setPopupType] = useState('success')
   const [popupTitle, setPopupTitle] = useState('')
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -23,15 +26,18 @@ const BookSlot = () => {
   }, [])
 
   const fetchSlots = async () => {
+    setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get('http://localhost:3000/api/slots', {
+      const response = await axios.get(`${API_BASE}/slots`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       setSlots(response.data)
+      setLoading(false)
     } catch (error) {
       console.error('Error fetching slots:', error)
       showPopupMessage('Error', 'Failed to fetch slots', 'error')
+      setLoading(false)
     }
   }
 
@@ -50,7 +56,7 @@ const BookSlot = () => {
       const token = localStorage.getItem('token')
       const userId = localStorage.getItem('userId')
       const response = await axios.post(
-        'http://localhost:3000/api/slots/book',
+        `${API_BASE}/slots/book`,
         { slotId, userId },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -82,7 +88,7 @@ const BookSlot = () => {
       const token = localStorage.getItem('token')
       const userId = localStorage.getItem('userId')
       await axios.post(
-        'http://localhost:3000/api/slots/book',
+        `${API_BASE}/slots/book`,
         { slotId, userId },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -147,43 +153,53 @@ const BookSlot = () => {
             <h3 className="text-sm font-medium">{popupTitle}</h3>
             <div className="text-sm">{popupMessage}</div>
           </div>
-          <button
-            type="button"
-            className="ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-offset-2"
+          <Button
+            size="xs"
+            color="light"
+            pill
             onClick={() => setShowPopup(false)}
+            className="ml-auto"
           >
             <span className="sr-only">Close</span>
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                 clipRule="evenodd"
               />
             </svg>
-          </button>
+          </Button>
         </div>
       </div>
 
-      {!showAlternatives ? (
+      {/* Show loading state */}
+      {loading ? (
+        <div className="flex justify-center items-center h-40">
+          <Button disabled>
+            <Spinner size="sm" className="me-3" />
+            Loading...
+          </Button>
+        </div>
+      ) : !showAlternatives ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {slots.map((slot) => (
-            <div key={slot.id} className="border rounded-lg p-4 shadow-md">
+            <div key={slot.id} className="border rounded-lg p-4 shadow-md bg-white dark:bg-gray-800">
               <h3 className="text-xl font-semibold mb-2">Slot {slot.id}</h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Date: {new Date(slot.date).toLocaleDateString()}
               </p>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Time: {slot.startTime} - {slot.endTime}
               </p>
-              <button
+              <Button
+                gradientDuoTone="cyanToBlue"
+                className="mt-4 w-full"
                 onClick={() => handleBookSlot(slot.id)}
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200"
               >
                 Book Slot
-              </button>
+              </Button>
             </div>
           ))}
-          
         </div>
       ) : (
         <div>
@@ -192,32 +208,33 @@ const BookSlot = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {alternativeSlots.map((slot) => (
-              <div key={slot.id} className="border rounded-lg p-4 shadow-md">
+              <div key={slot.id} className="border rounded-lg p-4 shadow-md bg-white dark:bg-gray-800">
                 <h3 className="text-xl font-semibold mb-2">Slot {slot.id}</h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   Date: {new Date(slot.date).toLocaleDateString()}
                 </p>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   Time: {slot.startTime} - {slot.endTime}
                 </p>
-                <button
+                <Button
+                  gradientDuoTone="greenToBlue"
+                  className="mt-4 w-full"
                   onClick={() => handleAlternativeSlot(slot.id)}
-                  className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
                 >
                   Book Alternative Slot
-                </button>
+                </Button>
               </div>
             ))}
           </div>
-          <button
+          <Button
+            color="light"
             onClick={() => setShowAlternatives(false)}
-            className="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors duration-200"
+            className="mt-4"
           >
             Back to All Slots
-          </button>
+          </Button>
         </div>
       )}
-      
     </div>
   )
 }
