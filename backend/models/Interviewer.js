@@ -1,5 +1,30 @@
 import pool from '../config/db.js'
 
+// Create interviewers table
+export const createInterviewersTable = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS interviewers (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        current_occupation VARCHAR(255),
+        experience VARCHAR(100),
+        expertise_level VARCHAR(50) DEFAULT 'beginner',
+        bio TEXT,
+        location VARCHAR(255),
+        skills TEXT[],
+        certifications TEXT[],
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+    console.log('Interviewers table created successfully')
+  } catch (err) {
+    console.error('Error creating interviewers table:', err)
+  }
+}
+
 class Interviewer {
   static async findOne({ where }) {
     const { userId } = where

@@ -7,6 +7,7 @@ import interviewerRoutes from './routes/interviewerRoutes.js'
 import resumeRoutes from './routes/resumeRoutes.js'
 import { createUserTable, createResumesTable } from './models/User.js'
 import { createSlotsTable, createCompletionsTable } from './models/Slot.js'
+import { createInterviewersTable } from './models/Interviewer.js'
 
 // Initialize dotenv
 dotenv.config()
@@ -19,6 +20,7 @@ const initializeDatabase = async () => {
   try {
     await createUserTable()
     await createResumesTable()
+    await createInterviewersTable()
     await createSlotsTable()
     await createCompletionsTable()
     console.log('Database tables initialized successfully')
