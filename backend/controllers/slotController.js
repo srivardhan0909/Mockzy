@@ -5,29 +5,42 @@ import {
 } from '../models/Slot.js'
 import pool from '../config/db.js'
 
+// Generate unique Jitsi meeting link
+const generateMeetingLink = (slotId, date) => {
+  const dateStr = new Date(date).toISOString().split('T')[0].replace(/-/g, '')
+  const uniqueId = `${slotId}-${dateStr}-${Math.random().toString(36).substring(2, 8)}`
+  return `https://meet.jit.si/mockzy-interview-${uniqueId}`
+}
+
 // Create a new slot (for interviewers)
 export const postSlot = async (req, res) => {
   const { date, time, duration, mode } = req.body
   const interviewerId = req.user.id // Get the interviewer's ID from the authenticated user
 
   try {
-    // Get the interviewer's expertise level from their profile
-    const interviewerResult = await pool.query(
-      'SELECT expertise_level FROM interviewers WHERE user_id = $1',
-      [interviewerId]
-    )
-    const expertiseLevel = interviewerResult.rows[0]?.expertise_level || 'beginner'
-
+    // First insert the slot to get the ID
     const result = await pool.query(
-      'INSERT INTO slots (date, time, duration, mode, admin_id, expertise_level) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [date, time, duration, mode, interviewerId, expertiseLevel]
+      'INSERT INTO slots (date, time, duration, mode, admin_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [date, time, duration, mode, interviewerId]
     )
+    
+    const slot = result.rows[0]
+    
+    // Generate meeting link with the slot ID
+    const meetingLink = generateMeetingLink(slot.id, date)
+    
+    // Update the slot with the meeting link
+    const updatedSlot = await pool.query(
+      'UPDATE slots SET meeting_link = $1 WHERE id = $2 RETURNING *',
+      [meetingLink, slot.id]
+    )
+    
     res
       .status(201)
-      .json({ message: 'Slot created successfully', slot: result.rows[0] })
+      .json({ message: 'Slot created successfully', slot: updatedSlot.rows[0] })
   } catch (err) {
     console.error('Error creating slot:', err.message)
-    res.status(500).json({ message: 'Server Error', error: err.message })
+    res.status(500).json({ message: 'Server Error' })
   }
 }
 
@@ -49,7 +62,7 @@ export const getAllSlots = async (req, res) => {
 
     // Build the query based on user role and classification
     let query =
-      'SELECT s.*, u.username as interviewer_name, i.expertise_level ' +
+      'SELECT s.*, u.username as interviewer_name, i.expertise_level, s.meeting_link ' +
       'FROM slots s ' +
       'LEFT JOIN users u ON s.admin_id = u.id ' +
       'LEFT JOIN interviewers i ON u.id = i.user_id '
@@ -101,7 +114,7 @@ export const getSlotById = async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT s.*, u.username as interviewer_name, i.expertise_level ' +
+      'SELECT s.*, u.username as interviewer_name, i.expertise_level, s.meeting_link ' +
         'FROM slots s ' +
         'LEFT JOIN users u ON s.admin_id = u.id ' +
         'LEFT JOIN interviewers i ON u.id = i.user_id ' +
@@ -185,7 +198,7 @@ export const getInterviewerSlots = async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT s.*, u.username as interviewer_name, i.expertise_level ' +
+      'SELECT s.*, u.username as interviewer_name, i.expertise_level, s.meeting_link ' +
         'FROM slots s ' +
         'LEFT JOIN users u ON s.admin_id = u.id ' +
         'LEFT JOIN interviewers i ON u.id = i.user_id ' +
@@ -331,6 +344,7 @@ export const getUserBookings = async (req, res) => {
              u.id as interviewer_id,
              u.email as interviewer_email,
              s.time as start_time,
+             s.meeting_link,
              CONCAT(
                TO_CHAR((s.time::time + (s.duration || ' minutes')::interval), 'HH24:MI:SS')
              ) as end_time

@@ -148,27 +148,27 @@ const InterviewerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Interviewer Dashboard
           </h1>
-          <div className="w-full sm:w-auto">
+          <div className="space-x-4">
             {/* <Button
               color="blue"
               onClick={() => navigate('/interviewer-profile')}
             >
               Edit Profile
             </Button> */}
-            <Button color="green" onClick={() => navigate('/slot-management')} className="w-full sm:w-auto">
+            <Button color="green" onClick={() => navigate('/slot-management')}>
               Manage Slots
             </Button>
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded text-sm sm:text-base">
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded">
             {error}
           </div>
         )}
@@ -183,36 +183,36 @@ const InterviewerDashboard = () => {
         ) : (
           <>
             {/* Slot Statistics */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
-                <h3 className="text-sm sm:text-lg font-semibold text-gray-700 dark:text-gray-300">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                   Total Slots
                 </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                   {slotStats.total}
                 </p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
-                <h3 className="text-sm sm:text-lg font-semibold text-gray-700 dark:text-gray-300">
-                  Available
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                  Available Slots
                 </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                   {slotStats.available}
                 </p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
-                <h3 className="text-sm sm:text-lg font-semibold text-gray-700 dark:text-gray-300">
-                  Booked
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                  Booked Slots
                 </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">
+                <p className="text-3xl font-bold text-red-600 dark:text-red-400">
                   {slotStats.booked}
                 </p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
-                <h3 className="text-sm sm:text-lg font-semibold text-gray-700 dark:text-gray-300">
-                  Completed
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                  Completed Interviews
                 </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400">
+                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                   {completedCount}
                 </p>
               </div>
@@ -220,11 +220,11 @@ const InterviewerDashboard = () => {
 
             {/* Booked Slots Section */}
             {bookedSlots.length > 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                   Upcoming Interviews
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {bookedSlots.map((slot) => (
                     <SlotCard
                       key={slot.id}
@@ -237,17 +237,16 @@ const InterviewerDashboard = () => {
                 </div>
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8 text-center">
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8 text-center">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                   Upcoming Interviews
                 </h2>
-                <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm sm:text-base">
+                <p className="text-gray-500 dark:text-gray-400 mb-4">
                   You don't have any booked interviews yet.
                 </p>
                 <Button
                   color="blue"
                   onClick={() => navigate('/slot-management')}
-                  className="w-full sm:w-auto"
                 >
                   Create More Slots
                 </Button>

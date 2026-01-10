@@ -19,6 +19,7 @@ import {
   HiUser,
   HiAcademicCap,
   HiVideoCamera,
+  HiExternalLink,
 } from 'react-icons/hi'
 
 const SlotCard = ({ slot, onDelete, onMarkComplete, userRole, searchDate }) => {
@@ -270,6 +271,25 @@ const SlotCard = ({ slot, onDelete, onMarkComplete, userRole, searchDate }) => {
             </span>
           </div>
         </div>
+
+        {/* Meeting Link - Show only for booked slots */}
+        {slot.is_booked && slot.meeting_link && (
+          <div className="mt-3 p-3 rounded-lg bg-green-50 border border-green-200">
+            <p className="flex items-center gap-2 mb-2 text-sm font-medium text-green-800">
+              <HiVideoCamera className="flex-shrink-0 text-green-600" />
+              Meeting Link
+            </p>
+            <a
+              href={slot.meeting_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline break-all"
+            >
+              <HiExternalLink className="flex-shrink-0" />
+              Join Meeting
+            </a>
+          </div>
+        )}
       </Card>
 
       <Modal

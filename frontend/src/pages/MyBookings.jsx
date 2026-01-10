@@ -22,6 +22,7 @@ import {
   MailOutlined,
   ArrowLeftOutlined,
   ExclamationCircleOutlined,
+  VideoCameraOutlined,
 } from '@ant-design/icons'
 
 const { Title, Text } = Typography
@@ -205,6 +206,26 @@ const MyBookings = () => {
           status={text === 'Online' ? 'success' : 'processing'}
           text={text || 'Not specified'}
         />
+      ),
+    },
+    {
+      title: 'Meeting',
+      dataIndex: 'meeting_link',
+      key: 'meeting_link',
+      render: (text) => (
+        text ? (
+          <a
+            href={text}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+          >
+            <VideoCameraOutlined />
+            <span>Join</span>
+          </a>
+        ) : (
+          <Text type="secondary">-</Text>
+        )
       ),
     },
     {
