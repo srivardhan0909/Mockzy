@@ -32,8 +32,8 @@ const Register = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <img src={LoginImg} alt="Register" className="w-[580px] mr-8" />
+    <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-white px-4 py-8">
+      <img src={LoginImg} alt="Register" className="hidden md:block w-full max-w-[400px] lg:max-w-[500px] md:mr-8 mb-8 md:mb-0" />
       <div className="w-full max-w-md">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
           Register

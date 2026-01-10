@@ -110,27 +110,28 @@ const SlotManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             Slot Management
           </h1>
           <Button
             color="blue"
             onClick={() => navigate('/interviewer-dashboard')}
+            className="w-full sm:w-auto"
           >
             Back to Dashboard
           </Button>
         </div>
 
         {/* Create New Slot Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             Create New Slot
           </h2>
           <form onSubmit={handleCreateSlot} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Date
@@ -214,8 +215,8 @@ const SlotManagement = () => {
         </div>
 
         {/* Slots List */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             My Slots
           </h2>
 
@@ -228,11 +229,12 @@ const SlotManagement = () => {
             </div>
           ) : slots.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm sm:text-base">
                 You haven't created any slots yet.
               </p>
               <Button
                 color="blue"
+                className="w-full sm:w-auto"
                 onClick={() =>
                   document
                     .querySelector('form')
@@ -243,7 +245,7 @@ const SlotManagement = () => {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {slots.map((slot) => (
                 <SlotCard
                   key={slot.id}

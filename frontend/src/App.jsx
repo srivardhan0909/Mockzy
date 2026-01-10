@@ -46,6 +46,7 @@ const { Header, Content, Sider } = Layout
 function NavbarComponent() {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const isAuthPage = ['/login', '/register'].includes(location.pathname)
 
@@ -68,7 +69,7 @@ function NavbarComponent() {
       <div className="flex items-center gap-3 md:order-2">
         {user ? (
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm font-medium text-gray-700 md:inline">
+            <span className="hidden text-sm font-medium text-gray-700 sm:inline">
               {user.username || 'User'}
             </span>
             <Button
@@ -78,35 +79,141 @@ function NavbarComponent() {
               className="flex items-center gap-1 px-3 py-1.5 btn-pulse"
             >
               <LogoutOutlined className="text-gray-600" />
-              <span className="hidden md:inline">Logout</span>
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               as={Link}
               to="/login"
               color="light"
               size="xs"
-              className="px-3 py-1.5 btn-pulse"
+              className="px-2 sm:px-3 py-1.5 btn-pulse"
             >
-              <LoginOutlined className="mr-1.5" />
-              <span className="hidden md:inline">Login</span>
+              <LoginOutlined className="sm:mr-1.5" />
+              <span className="hidden sm:inline">Login</span>
             </Button>
             <Button
               as={Link}
               to="/register"
               color="blue"
               size="xs"
-              className="px-3 py-1.5 btn-pulse"
+              className="px-2 sm:px-3 py-1.5 btn-pulse"
             >
-              <UserAddOutlined className="mr-1.5" />
-              <span className="hidden md:inline">Register</span>
+              <UserAddOutlined className="sm:mr-1.5" />
+              <span className="hidden sm:inline">Register</span>
             </Button>
           </div>
         )}
-        <Navbar.Toggle />
+        {/* Mobile menu toggle - only show when logged in */}
+        {user && (
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+          >
+            {mobileMenuOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
+          </button>
+        )}
       </div>
+
+      {/* Mobile Navigation Menu */}
+      {user && mobileMenuOpen && (
+        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b shadow-lg z-40">
+          <nav className="p-4 space-y-2">
+            <NavLink
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className={({ isActive }) =>
+                `block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
+                }`
+              }
+            >
+              <HomeOutlined className="mr-2" /> Home
+            </NavLink>
+
+            {user?.role === 'candidate' && (
+              <>
+                <NavLink
+                  to="/all-slots"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <CalendarOutlined className="mr-2" /> All Slots
+                </NavLink>
+                <NavLink
+                  to="/my-bookings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <FileOutlined className="mr-2" /> My Bookings
+                </NavLink>
+              </>
+            )}
+
+            {user?.role === 'interviewer' && (
+              <>
+                <NavLink
+                  to="/interviewer-dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <DashboardOutlined className="mr-2" /> Dashboard
+                </NavLink>
+                <NavLink
+                  to="/slot-management"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <SettingOutlined className="mr-2" /> Manage Slots
+                </NavLink>
+                <NavLink
+                  to="/interviewer-profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <UserOutlined className="mr-2" /> Profile
+                </NavLink>
+              </>
+            )}
+
+            {user?.role === 'admin' && (
+              <NavLink
+                to="/admin-slots"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
+                  }`
+                }
+              >
+                <TeamOutlined className="mr-2" /> Admin Panel
+              </NavLink>
+            )}
+          </nav>
+        </div>
+      )}
     </Navbar>
   )
 }
@@ -322,7 +429,7 @@ function MainLayout({ children }) {
         {user && !isAuthPage && (
           <Sider
             width={200}
-            className="bg-white h-[calc(100vh-64px)] overflow-y-auto overflow-x-hidden"
+            className="bg-white h-[calc(100vh-64px)] overflow-y-auto overflow-x-hidden hidden lg:block"
             style={{ position: 'fixed', left: 0, top: 64, bottom: 0 }}
             breakpoint="lg"
             collapsedWidth="0"
@@ -333,8 +440,8 @@ function MainLayout({ children }) {
         )}
 
         <Content
-          className={`bg-gray-50 p-4 md:p-6 transition-all duration-300 ease-in-out ${
-            user && !isAuthPage ? 'md:ml-[200px]' : ''
+          className={`bg-gray-50 p-3 sm:p-4 md:p-6 transition-all duration-300 ease-in-out ${
+            user && !isAuthPage ? 'lg:ml-[200px]' : ''
           }`}
         >
           <div className="mx-auto max-w-7xl">{children}</div>
