@@ -2,9 +2,21 @@ import pool from '../config/db.js' // Database connection
 import jwt from 'jsonwebtoken'
 
 // Register a new user
-// Register a new user
 export const registerUser = async (req, res) => {
   const { username, email, password, role } = req.body
+
+  // Validate required fields
+  if (!username || !email || !password || !role) {
+    return res.status(400).json({ 
+      message: 'All fields are required',
+      missing: {
+        username: !username,
+        email: !email,
+        password: !password,
+        role: !role
+      }
+    })
+  }
 
   try {
     // Check if the email already exists using raw SQL
@@ -17,6 +29,16 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Email already registered.' })
     }
 
+    // Check if username already exists
+    const existingUsername = await pool.query(
+      'SELECT * FROM users WHERE username = $1',
+      [username]
+    )
+
+    if (existingUsername.rows.length > 0) {
+      return res.status(400).json({ message: 'Username already taken.' })
+    }
+
     // If email not taken, insert new user
     const newUser = await pool.query(
       'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
@@ -27,8 +49,8 @@ export const registerUser = async (req, res) => {
       .status(201)
       .json({ message: 'Registration successful!', user: newUser.rows[0] })
   } catch (err) {
-    console.error(err.message)
-    res.status(500).send('Server Error')
+    console.error('Registration error:', err.message)
+    res.status(500).json({ message: 'Server Error', error: err.message })
   }
 }
 
