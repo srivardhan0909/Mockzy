@@ -23,10 +23,20 @@ function Home() {
 
   const handleGetStarted = () => {
     if (user) {
-      navigate('/all-slots')
+      if (user.role === 'interviewer') {
+        navigate('/interviewer-dashboard')
+      } else {
+        navigate('/all-slots')
+      }
     } else {
       navigate('/register')
     }
+  }
+
+  const getButtonText = () => {
+    if (!user) return 'Start Practicing'
+    if (user.role === 'interviewer') return 'Go to Dashboard'
+    return 'Browse Available Slots'
   }
 
   // Animation variants
@@ -110,7 +120,7 @@ function Home() {
               className="px-8 py-3 text-base font-medium rounded-lg btn-pulse shadow-md hover:shadow-lg"
             >
               <div className="flex items-center justify-center">
-                {user ? 'Browse Available Slots' : 'Start Practicing'}
+                {getButtonText()}
                 <ArrowRightOutlined className="ml-2" />
               </div>
             </Button>

@@ -9,24 +9,19 @@ import {
   Typography,
   Space,
   Tag,
-  Modal,
   Empty,
-  Tooltip,
   Badge,
 } from 'antd'
 import {
   CalendarOutlined,
   ClockCircleOutlined,
   UserOutlined,
-  DeleteOutlined,
-  MailOutlined,
   ArrowLeftOutlined,
   ExclamationCircleOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons'
 
 const { Title, Text } = Typography
-const { confirm } = Modal
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([])
@@ -228,28 +223,6 @@ const MyBookings = () => {
         )
       ),
     },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space size="middle">
-          {record.interviewer_email && (
-            <Tooltip title={`Email: ${record.interviewer_email}`}>
-              <Button size="xs" color="info">
-                <MailOutlined />
-              </Button>
-            </Tooltip>
-          )}
-          <Button
-            size="xs"
-            color="failure"
-            onClick={() => handleCancelBooking(record.id)}
-          >
-            <DeleteOutlined />
-          </Button>
-        </Space>
-      ),
-    },
   ]
 
   if (loading) {
@@ -331,16 +304,17 @@ const MyBookings = () => {
           </Button>
         </div>
 
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-lg overflow-x-auto">
           <Table
             columns={columns}
             dataSource={bookings.map((booking) => ({
               ...booking,
               key: booking.id,
             }))}
-            pagination={{ pageSize: 10 }}
-            responsive
+            pagination={{ pageSize: 10, responsive: true }}
+            scroll={{ x: 'max-content' }}
             className="my-bookings-table"
+            size="middle"
           />
         </div>
       </div>
