@@ -11,13 +11,21 @@ export const createSlotsTable = async () => {
         duration INTEGER NOT NULL,
         mode VARCHAR(50) NOT NULL,
         is_booked BOOLEAN DEFAULT false,
-        expertise_level VARCHAR(50) NOT NULL,
+        expertise_level VARCHAR(50) DEFAULT 'beginner',
         status VARCHAR(20) DEFAULT 'available',
         booked_by INTEGER REFERENCES users(id),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `)
     console.log('Slots table created successfully')
+
+    // Alter existing column to have default if it exists
+    await pool.query(`
+      ALTER TABLE slots 
+      ALTER COLUMN expertise_level SET DEFAULT 'beginner',
+      ALTER COLUMN expertise_level DROP NOT NULL
+    `).catch(() => {}) // Ignore if column doesn't exist or already modified
+
   } catch (err) {
     console.error('Error creating slots table:', err)
   }

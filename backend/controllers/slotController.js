@@ -11,16 +11,23 @@ export const postSlot = async (req, res) => {
   const interviewerId = req.user.id // Get the interviewer's ID from the authenticated user
 
   try {
+    // Get the interviewer's expertise level from their profile
+    const interviewerResult = await pool.query(
+      'SELECT expertise_level FROM interviewers WHERE user_id = $1',
+      [interviewerId]
+    )
+    const expertiseLevel = interviewerResult.rows[0]?.expertise_level || 'beginner'
+
     const result = await pool.query(
-      'INSERT INTO slots (date, time, duration, mode, admin_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [date, time, duration, mode, interviewerId]
+      'INSERT INTO slots (date, time, duration, mode, admin_id, expertise_level) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [date, time, duration, mode, interviewerId, expertiseLevel]
     )
     res
       .status(201)
       .json({ message: 'Slot created successfully', slot: result.rows[0] })
   } catch (err) {
     console.error('Error creating slot:', err.message)
-    res.status(500).json({ message: 'Server Error' })
+    res.status(500).json({ message: 'Server Error', error: err.message })
   }
 }
 
